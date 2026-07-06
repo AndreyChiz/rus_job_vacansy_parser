@@ -24,8 +24,8 @@ async def main():
 
     message_body = json.dumps({
         "command": "parse_vacancies",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "source": "test_publish",
+        "hosts": ["hh.ru", "career.habr.com"],
+        "query": "Python",
     })
 
     await exchange.publish(
@@ -51,6 +51,7 @@ async def main():
                     vacancy = json.loads(item)
                     print(f"\n  --- Вакансия #{idx} ---")
                     print(f"  ID:    {vacancy.get('vacancy_id')}")
+                    print(f"  Host:  {vacancy.get('host')}")
                     print(f"  Title: {vacancy.get('title')}")
                     print(f"  URL:   {vacancy.get('url')}")
                 break

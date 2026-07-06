@@ -1,3 +1,4 @@
+import json
 import aio_pika
 from typing import Callable, Awaitable
 from logging import getLogger
@@ -6,7 +7,7 @@ logger = getLogger(__name__)
 
 
 class VacancyParseHandler:
-    def __init__(self, mq_channel, on_parse: Callable[[], Awaitable[None]]):
+    def __init__(self, mq_channel, on_parse: Callable[[dict], Awaitable[None]]):
         self.channel = mq_channel
         self.on_parse = on_parse
 
@@ -21,8 +22,9 @@ class VacancyParseHandler:
 
     async def _on_message(self, message: aio_pika.IncomingMessage):
         async with message.process():
-            logger.info("Received parse command: %s", message.body)
             try:
-                await self.on_parse()
+                body = json.loads(message.body)
+                logger.info("Received parse command: %s", body)
+                await self.on_parse(body)
             except Exception:
                 logger.exception("Parse failed")

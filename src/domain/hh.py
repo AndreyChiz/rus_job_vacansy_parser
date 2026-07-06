@@ -116,6 +116,7 @@ class HHParser(BaseVacancyParser):
             return VacancyDTO(
                 url=url,
                 vacancy_id=vacancy_id,
+                host=self.host,
                 title=title,
                 employer=employer,
                 salary=salary,

@@ -31,11 +31,14 @@ async def main():
         sink = RedisVacancySink(redis)
         status = RedisStatusFlag(redis, ttl=LOCK_TTL)
 
-        async def run_parse():
+        async def run_parse(body: dict):
             await status.set_running()
 
             try:
-                vacancies = await usecase.execute()
+                hosts = body.get("hosts")
+                query = body.get("query")
+
+                vacancies = await usecase.execute(hosts=hosts, query=query)
 
                 for vacancy in vacancies:
                     await sink.push(vacancy.model_dump_json())

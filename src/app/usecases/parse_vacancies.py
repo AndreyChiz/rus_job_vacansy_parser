@@ -13,10 +13,24 @@ class ParseVacanciesUseCase:
         self.browser = browser
         self.cache = cache
 
-    async def execute(self) -> List[VacancyDTO]:
-        tasks = [self._run_parser(parser) for parser in self.parsers]
+    async def execute(self, hosts: List[str] | None = None, query: str | None = None) -> List[VacancyDTO]:
+        parsers = self._filter_parsers(hosts, query)
+
+        tasks = [self._run_parser(parser) for parser in parsers]
         results = await asyncio.gather(*tasks)
         return [v for batch in results for v in batch]
+
+    def _filter_parsers(self, hosts: List[str] | None, query: str | None):
+        parsers = self.parsers
+
+        if hosts:
+            parsers = [p for p in parsers if p.host in hosts]
+
+        if query:
+            for parser in parsers:
+                parser.query = query
+
+        return parsers
 
     async def _run_parser(self, parser) -> List[VacancyDTO]:
         context = await self.browser.new_context()

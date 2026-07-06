@@ -4,6 +4,7 @@ from pydantic import BaseModel, field_validator
 class VacancyDTO(BaseModel):
     vacancy_id: str
     url: str
+    host: str
 
     title: str | None = None
     employer: str | None = None
