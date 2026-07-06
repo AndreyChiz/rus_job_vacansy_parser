@@ -1,11 +1,11 @@
 from infra.browser import BrowserProvider
 from infra.cache import CacheProvider
 
-from parsers.hh import HHParser
-from parsers.habr import HabrParser
-from parsers.rabota import RabotaParser
-from parsers.superjob import SuperJobParser
-from parsers.zarplata import ZarplataParser
+from domain.hh import HHParser
+from domain.habr import HabrParser
+from domain.rabota import RabotaParser
+from domain.superjob import SuperJobParser
+from domain.zarplata import ZarplataParser
 
 from app.usecases.parse_vacancies import ParseVacanciesUseCase
 
