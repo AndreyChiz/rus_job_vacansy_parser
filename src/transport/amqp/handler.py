@@ -1,13 +1,14 @@
 import aio_pika
+from typing import Callable, Awaitable
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 
 class VacancyParseHandler:
-    def __init__(self, mq_channel, parse_usecase):
+    def __init__(self, mq_channel, on_parse: Callable[[], Awaitable[None]]):
         self.channel = mq_channel
-        self.parse_usecase = parse_usecase
+        self.on_parse = on_parse
 
     async def start_consuming(self):
         exchange = await self.channel.declare_exchange(
@@ -22,6 +23,6 @@ class VacancyParseHandler:
         async with message.process():
             logger.info("Received parse command: %s", message.body)
             try:
-                await self.parse_usecase.execute()
+                await self.on_parse()
             except Exception:
                 logger.exception("Parse failed")

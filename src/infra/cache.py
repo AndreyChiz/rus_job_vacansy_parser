@@ -1,46 +1,23 @@
-from typing import Any
+from abc import ABC, abstractmethod
 from redis.asyncio import Redis
 
-from core.base.base_cache import BaseCacheProvider, BaseCacheBackend
 from core.base.base_lifespan import BaseLifecycle
 
 
-# =========================
-# BACKEND INTERFACES
-# =========================
+class CacheBackend(ABC):
 
-class CacheBackend:
-    async def get(self, key: str) -> Any | None: ...
-    async def set(self, key: str, value: str, ttl: int | None = None) -> None: ...
-    async def delete(self, key: str) -> None: ...
-    async def exists(self, key: str) -> bool: ...
-    async def sadd(self, key: str, value: str) -> None: ...
-    async def sismember(self, key: str, value: str) -> bool: ...
-    async def rpush(self, key: str, value: str) -> None: ...
-    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool: ...
+    @abstractmethod
+    async def sadd(self, key: str, value: str) -> None:
+        ...
+
+    @abstractmethod
+    async def sismember(self, key: str, value: str) -> bool:
+        ...
 
 
-# =========================
-# MEMORY
-# =========================
-
-class MemoryCacheBackend(BaseCacheBackend):
+class MemoryCacheBackend(CacheBackend):
     def __init__(self):
-        self.kv: dict[str, Any] = {}
         self.sets: dict[str, set] = {}
-        self.lists: dict[str, list] = {}
-
-    async def get(self, key: str) -> Any | None:
-        return self.kv.get(key)
-
-    async def set(self, key: str, value: str, ttl: int | None = None) -> None:
-        self.kv[key] = value
-
-    async def delete(self, key: str) -> None:
-        self.kv.pop(key, None)
-
-    async def exists(self, key: str) -> bool:
-        return key in self.kv
 
     async def sadd(self, key: str, value: str) -> None:
         self.sets.setdefault(key, set()).add(value)
@@ -48,21 +25,8 @@ class MemoryCacheBackend(BaseCacheBackend):
     async def sismember(self, key: str, value: str) -> bool:
         return value in self.sets.get(key, set())
 
-    async def rpush(self, key: str, value: str) -> None:
-        self.lists.setdefault(key, []).append(value)
 
-    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool:
-        if key in self.kv:
-            return False
-        self.kv[key] = value
-        return True
-
-
-# =========================
-# REDIS
-# =========================
-
-class RedisCacheBackend(BaseCacheBackend, BaseLifecycle):
+class RedisCacheBackend(CacheBackend, BaseLifecycle):
     def __init__(self, url: str):
         self.url = url
         self.redis: Redis | None = None
@@ -75,41 +39,23 @@ class RedisCacheBackend(BaseCacheBackend, BaseLifecycle):
             await self.redis.aclose()
         self.redis = None
 
-    def _client(self) -> Redis:
+    def get_client(self) -> Redis:
         if self.redis is None:
             raise RuntimeError("Redis not started")
         return self.redis
 
-    async def get(self, key: str) -> Any | None:
-        return await self._client().get(key)
-
-    async def set(self, key: str, value: str, ttl: int | None = None) -> None:
-        await self._client().set(key, value, ex=ttl)
-
-    async def delete(self, key: str) -> None:
-        await self._client().delete(key)
-
-    async def exists(self, key: str) -> bool:
-        return bool(await self._client().exists(key))
-
     async def sadd(self, key: str, value: str) -> None:
-        await self._client().sadd(key, value)
+        await self.get_client().sadd(key, value)
 
     async def sismember(self, key: str, value: str) -> bool:
-        return bool(await self._client().sismember(key, value))
-
-    async def rpush(self, key: str, value: str) -> None:
-        await self._client().rpush(key, value)
-
-    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool:
-        return bool(await self._client().set(key, value, nx=True, ex=ttl))
+        return bool(await self.get_client().sismember(key, value))
 
 
-class CacheProvider(BaseCacheProvider, BaseLifecycle):
+class CacheProvider(BaseLifecycle):
     def __init__(self, cache_type: str, url: str | None = None):
         self.cache_type = cache_type
         self.url = url
-        self.backend: BaseCacheBackend | None = None
+        self.backend: CacheBackend | None = None
 
     async def start(self) -> None:
         if self.cache_type == "memory":
@@ -133,7 +79,7 @@ class CacheProvider(BaseCacheProvider, BaseLifecycle):
 
         self.backend = None
 
-    def _b(self) -> BaseCacheBackend:
+    def get_backend(self) -> CacheBackend:
         if self.backend is None:
             raise RuntimeError("Cache not started")
         return self.backend
@@ -141,26 +87,8 @@ class CacheProvider(BaseCacheProvider, BaseLifecycle):
     def get_instance(self) -> "CacheProvider":
         return self
 
-    async def get(self, key: str) -> Any | None:
-        return await self._b().get(key)
-
-    async def set(self, key: str, value: str, ttl: int | None = None) -> None:
-        await self._b().set(key, value, ttl)
-
-    async def delete(self, key: str) -> None:
-        await self._b().delete(key)
-
-    async def exists(self, key: str) -> bool:
-        return await self._b().exists(key)
-
     async def sadd(self, key: str, value: str) -> None:
-        await self._b().sadd(key, value)
+        await self.get_backend().sadd(key, value)
 
     async def sismember(self, key: str, value: str) -> bool:
-        return await self._b().sismember(key, value)
-
-    async def rpush(self, key: str, value: str) -> None:
-        await self._b().rpush(key, value)
-
-    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool:
-        return await self._b().set_nx(key, value, ttl)
+        return await self.get_backend().sismember(key, value)

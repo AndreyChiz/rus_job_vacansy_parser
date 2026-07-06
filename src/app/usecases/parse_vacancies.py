@@ -1,5 +1,8 @@
 import asyncio
+from typing import List
 from logging import getLogger
+
+from core.schema import VacancyDTO
 
 logger = getLogger(__name__)
 
@@ -10,21 +13,12 @@ class ParseVacanciesUseCase:
         self.browser = browser
         self.cache = cache
 
-    async def execute(self) -> bool:
-        acquired = await self.cache.set_nx("vacancy:parser:running", "1", ttl=600)
-        if not acquired:
-            logger.warning("Parser already running, skipping")
-            return False
+    async def execute(self) -> List[VacancyDTO]:
+        tasks = [self._run_parser(parser) for parser in self.parsers]
+        results = await asyncio.gather(*tasks)
+        return [v for batch in results for v in batch]
 
-        try:
-            tasks = [self._run_parser(parser) for parser in self.parsers]
-            await asyncio.gather(*tasks)
-        finally:
-            await self.cache.delete("vacancy:parser:running")
-
-        return True
-
-    async def _run_parser(self, parser):
+    async def _run_parser(self, parser) -> List[VacancyDTO]:
         context = await self.browser.new_context()
 
         try:
@@ -37,11 +31,7 @@ class ParseVacanciesUseCase:
             for url in urls:
                 vacancy_id = parser._get_card_id_from_url(url)
 
-                already_seen = await self.cache.sismember(
-                    "vacancy:processed", vacancy_id
-                )
-
-                if already_seen:
+                if await self.cache.sismember("vacancy:processed", vacancy_id):
                     seen += 1
                     continue
 
@@ -59,12 +49,13 @@ class ParseVacanciesUseCase:
             vacancies = await parser.parse_cards(context, filtered_urls)
 
             for vacancy in vacancies:
-                await self.cache.rpush("vacancy:queue", vacancy.model_dump_json())
                 await self.cache.sadd("vacancy:processed", vacancy.vacancy_id)
 
             logger.info(
-                "[%s] Pushed %d vacancies to queue", parser.host, len(vacancies)
+                "[%s] Parsed %d vacancies", parser.host, len(vacancies)
             )
+
+            return vacancies
 
         finally:
             await context.close()
