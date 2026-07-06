@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 HOST = os.getenv("JOB_HUNTER__HOST", "dev.loc")
 LOG_LEVEL = os.getenv("VACANCY_PARSER__LOG_LEVEL", "INFO")  # INFO
@@ -13,9 +16,8 @@ CACHE_URL = os.getenv(
     "JOB_HUNTER__PARSER_SERVICE__CACHE_URL", f"redis://:{CACHE_USER}@{HOST}:6379/0"
 )  
 
-DATABASE_TYPE = os.getenv("JOB_HUNTER__PARSER_SERVICE__DATABASE_TYPE", "sqlite")  # postgres
-DATABASE_URL = os.getenv(
-    "JOB_HUNTER__PARSER_SERVICE__DATABASE_URL", "sqlite+aiosqlite:///./db.sqlite3"
+RABBITMQ_URL = os.getenv(
+    "JOB_HUNTER__RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"
 )
 
 BROWSER_ENGINE_TYPE = os.getenv(

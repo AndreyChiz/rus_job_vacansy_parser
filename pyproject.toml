@@ -8,22 +8,16 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "aio-pika>=9.0.0",
     "aiocache>=0.12.3",
-    "aiosqlite>=0.22.1",
-    "alembic>=1.18.4",
-    "asyncpg>=0.31.0",
     "beautifulsoup4>=4.14.3",
     "dotenv>=0.9.9",
-    "fastmcp[apps]>=3.4.2",
-    "nest-asyncio>=1.6.0",
     "playwright>=1.60.0",
     "playwright-firefox>=1.0.4",
     "playwright-stealth>=2.0.3",
     "pydantic>=2.13.4",
     "redis>=8.0.0",
-    "requests>=2.34.2",
     "rich>=15.0.0",
-    "sqlalchemy[asyncio]>=2.0.50",
 ]
 
 

@@ -16,6 +16,8 @@ class CacheBackend:
     async def exists(self, key: str) -> bool: ...
     async def sadd(self, key: str, value: str) -> None: ...
     async def sismember(self, key: str, value: str) -> bool: ...
+    async def rpush(self, key: str, value: str) -> None: ...
+    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool: ...
 
 
 # =========================
@@ -26,6 +28,7 @@ class MemoryCacheBackend(BaseCacheBackend):
     def __init__(self):
         self.kv: dict[str, Any] = {}
         self.sets: dict[str, set] = {}
+        self.lists: dict[str, list] = {}
 
     async def get(self, key: str) -> Any | None:
         return self.kv.get(key)
@@ -44,6 +47,15 @@ class MemoryCacheBackend(BaseCacheBackend):
 
     async def sismember(self, key: str, value: str) -> bool:
         return value in self.sets.get(key, set())
+
+    async def rpush(self, key: str, value: str) -> None:
+        self.lists.setdefault(key, []).append(value)
+
+    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool:
+        if key in self.kv:
+            return False
+        self.kv[key] = value
+        return True
 
 
 # =========================
@@ -85,6 +97,12 @@ class RedisCacheBackend(BaseCacheBackend, BaseLifecycle):
 
     async def sismember(self, key: str, value: str) -> bool:
         return bool(await self._client().sismember(key, value))
+
+    async def rpush(self, key: str, value: str) -> None:
+        await self._client().rpush(key, value)
+
+    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool:
+        return bool(await self._client().set(key, value, nx=True, ex=ttl))
 
 
 class CacheProvider(BaseCacheProvider, BaseLifecycle):
@@ -140,3 +158,9 @@ class CacheProvider(BaseCacheProvider, BaseLifecycle):
 
     async def sismember(self, key: str, value: str) -> bool:
         return await self._b().sismember(key, value)
+
+    async def rpush(self, key: str, value: str) -> None:
+        await self._b().rpush(key, value)
+
+    async def set_nx(self, key: str, value: str, ttl: int | None = None) -> bool:
+        return await self._b().set_nx(key, value, ttl)
