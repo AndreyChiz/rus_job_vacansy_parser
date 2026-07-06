@@ -1,0 +1,26 @@
+import os
+
+HOST = os.getenv("JOB_HUNTER__HOST", "dev.loc")
+LOG_LEVEL = os.getenv("VACANCY_PARSER__LOG_LEVEL", "INFO")  # INFO
+
+PARSE_TIMEOUT_S=int(os.getenv("JOB_HUNTER__PARSER_SERVICE__PARSE_TIMEOUT_S", 60) ) 
+PARALLEL_WORKERS = int(os.getenv("JOB_HUNTER__PARSER_SERVICE__PARALLEL_WORKERS", 4))
+CARDS_PARSE_LIMIT = int(os.getenv("JOB_HUNTER__PARSER_SERVICE__CARDS_PARSE_LIMIT", 10))
+
+CACHE_TYPE = os.getenv("JOB_HUNTER__PARSER_SERVICE__CACHE_TYPE", "redis")  # "memory"
+CACHE_USER = os.getenv("JOB_HUNTER__REDIS__PASSWORD")
+CACHE_URL = os.getenv(
+    "JOB_HUNTER__PARSER_SERVICE__CACHE_URL", f"redis://:{CACHE_USER}@{HOST}:6379/0"
+)  
+
+DATABASE_TYPE = os.getenv("JOB_HUNTER__PARSER_SERVICE__DATABASE_TYPE", "sqlite")  # postgres
+DATABASE_URL = os.getenv(
+    "JOB_HUNTER__PARSER_SERVICE__DATABASE_URL", "sqlite+aiosqlite:///./db.sqlite3"
+)
+
+BROWSER_ENGINE_TYPE = os.getenv(
+    "VACANCY_PARSER__BROWSER_ENGINE_TYPE", "chromium"
+)  # firefox webkit TODO
+
+
+PARSER_QUERY_WORDS = os.getenv("JOB_HUNTER__PARSER_SERVICE__QUERY_WORDS", "")  # "Python backend"

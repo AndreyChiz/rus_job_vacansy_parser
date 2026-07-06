@@ -1,0 +1,89 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+# virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# =========================
+# distribution
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# pytest / coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# mypy / ruff / pyright
+# =========================
+.mypy_cache/
+.ruff_cache//
+.pyright/
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# logs
+# =========================
+*.log
+logs/
+
+# =========================
+# environment variables
+# =========================
+.env
+.env.*
+!.env.template
+
+# =========================
+# Playwright
+# =========================
+playwright-report/
+blob-report/
+test-results/
+ms-playwright/
+
+# =========================
+# Docker
+# =========================
+.docker/
+
+# =========================
+# runtime data
+# =========================
+*.sqlite
+*.db
+
+# =========================
+# temp / cache
+# =========================
+.cache/
+tmp/
+temp/
+tmp.txt
+db.sqlite3
+.browser_state/hh_ru.json

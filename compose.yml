@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  parser:
+    build: .
+    container_name: hh-parser
+    env_file:
+      - .env
+    restart: always
