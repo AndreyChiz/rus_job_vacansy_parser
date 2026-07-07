@@ -1,80 +1,72 @@
 # Parser Service
 
-Сервис парсинга вакансий с российских job-сайтов. Получает команды через RabbitMQ, парсит вакансии, публикует результат в Redis.
+Сервис парсинга вакансий с российских job-сайтов. Получает команды через RabbitMQ, парсит вакансии публикует результат в Redis по мере парсинга.
 
 ## Архитектура
 
 ```
-                    Agent
-                      │
-                      │ get_new_vacancy()
-                      ▼
-                mcp_service
-                 │       │
-      LPOP       │       │ Publish
-                 │       ▼
-              Redis     RabbitMQ
-                 ▲          │
-                 │          ▼
-             RPUSH     parser_service
+  RabbitMQ                    Parser Service                   Redis
+┌──────────┐    vacancy.parse    ┌──────────────┐    RPUSH     ┌──────────────┐
+│  Command  │ ─────────────────► │              │ ───────────► │ vacancy:queue│
+│  Queue    │                    │  5 парсеров  │              │ (вакансии)   │
+└──────────┘                    │  playwright  │              └──────────────┘
+                                │  stealth     │    SADD      ┌──────────────┐
+                                │              │ ───────────► │ vacancy:     │
+                                └──────────────┘              │ processed    │
+                                                              │ (дедуп)      │
+                                                              └──────────────┘
 ```
 
-### Слои
+## Структура проекта
 
 ```
 src/
-├── core/                  # Доменные сущности и абстракции
-│   ├── schema.py          # VacancyDTO
-│   └── base/              # Абстрактные базовые классы
-├── domain/                # Парсеры сайтов
-│   ├── hh.py
-│   ├── habr.py
-│   ├── rabota.py
-│   ├── superjob.py
-│   └── zarplata.py
-├── app/                   # Бизнес-логика
-│   ├── container.py       # DI-контейнер
+├── core/
+│   ├── schema.py              # VacancyDTO
+│   └── base/
+│       ├── base_parser.py     # BaseVacancyParser
+│       └── base_lifespan.py   # BaseLifecycle
+├── domain/
+│   ├── hh.py                  # HeadHunter
+│   ├── habr.py                # Habr Career
+│   ├── rabota.py              # Работа.ру
+│   ├── superjob.py            # SuperJob
+│   └── zarplata.py            # Зарплата.ру
+├── app/
+│   ├── container.py           # DI-контейнер
 │   └── usecases/
-│       └── parse_vacancies.py
-├── infra/                 # Инфраструктура
-│   ├── cache.py           # CacheProvider (memory/redis)
-│   ├── browser.py         # BrowserProvider (Playwright)
-│   └── logger.py
-├── transport/             # Внешние интерфейсы
-│   ├── amqp/              # RabbitMQ
-│   │   ├── mq_provider.py
-│   │   └── handler.py
-│   └── redis/             # Redis (вывод)
-│       ├── status_flag.py
-│       └── vacancy_sink.py
-├── main.py                # Точка входа
-└── test_publish.py        # Тестовый скрипт
+│       └── parse_vacancies.py # Use case парсинга
+├── infra/
+│   ├── browser.py             # BrowserProvider (Playwright + stealth)
+│   ├── cache.py               # CacheProvider (memory/redis)
+│   └── logger.py              # Цветной логгер
+├── transport/
+│   ├── amqp/
+│   │   ├── mq_provider.py     # Подключение к RabbitMQ
+│   │   └── handler.py         # Обработчик сообщений
+│   └── redis/
+│       ├── vacancy_sink.py    # Запись вакансий (RPUSH)
+│       └── status_flag.py     # Флаг состояния парсера
+└── main.py                    # Точка входа
 ```
 
 ## Установка
 
-### Через uv (рекомендуется)
-
 ```bash
-cd parser_service
+# Клонировать
+git clone https://github.com/AndreyChiz/rus_job_vacansy_parser.git
+cd rus_job_vacansy_parser
+
+# Установить зависимости
 uv sync
-```
 
-### Через pip
-
-```bash
-pip install -e .
-```
-
-### Установка Playwright
-
-```bash
-python -m playwright install chromium
+# Установить Chromium
+uv run python -m playwright install chromium
 ```
 
 ## Конфигурация
 
-Создайте `.env` файл на основе `.env.template`:
+Скопируйте `.env.template` в `.env`:
 
 ```bash
 cp .env.template .env
@@ -84,36 +76,42 @@ cp .env.template .env
 
 | Переменная | Описание | По умолчанию |
 |---|---|---|
-| `JOB_HUNTER__HOST` | Хост Redis | `dev.loc` |
-| `JOB_HUNTER__RABBITMQ_URL` | URL RabbitMQ | `amqp://guest:guest@localhost:5672/` |
-| `JOB_HUNTER__REDIS__PASSWORD` | Пароль Redis | - |
-| `JOB_HUNTER__PARSER_SERVICE__CACHE_TYPE` | Тип кеша (`redis`/`memory`) | `redis` |
-| `JOB_HUNTER__PARSER_SERVICE__CACHE_URL` | URL Redis | `redis://:password@host:6379/0` |
-| `JOB_HUNTER__PARSER_SERVICE__QUERY_WORDS` | Ключевые слова для поиска | - |
-| `JOB_HUNTER__PARSER_SERVICE__PARALLEL_WORKERS` | Количество параллельных воркеров | `4` |
-| `JOB_HUNTER__PARSER_SERVICE__CARDS_PARSE_LIMIT` | Лимит карточек на парсер | `10` |
-| `JOB_HUNTER__PARSER_SERVICE__PARSE_TIMEOUT_S` | Таймаут парсинга (сек) | `60` |
+| `LOG_LEVEL` | Уровень логирования | `INFO` |
+| `RABBITMQ_URL` | URL подключения к RabbitMQ | `amqp://guest:guest@localhost:5672/` |
+| `CACHE_TYPE` | Тип кеша (`redis` / `memory`) | `redis` |
+| `CACHE_URL` | URL подключения к Redis | `redis://localhost:6379/0` |
+| `PARALLEL_WORKERS` | Количество параллельных воркеров | `4` |
+| `CARDS_PARSE_LIMIT` | Лимит карточек на парсер | `10` |
+| `BROWSER_TYPE` | Тип браузера (`chromium` / `firefox` / `webkit`) | `chromium` |
 
 ## Запуск
 
 ### Локально
 
 ```bash
-cd src
-python main.py
+# Убедитесь что Redis и RabbitMQ запущены
+uv run python src/main.py
 ```
 
-### Через Docker Compose
+### Docker
 
 ```bash
-docker compose up -d
+# Собрать образ
+docker build -t parser_service .
+
+# Запустить (с доступом к Redis/RabbitMQ на хосте)
+docker run --network host --env-file .env parser_service
 ```
 
-Запустит Redis + RabbitMQ + парсер.
+### Docker Compose
+
+```bash
+docker compose up --build -d
+```
 
 ## Использование
 
-### Формат сообщения в RabbitMQ
+### Формат команды в RabbitMQ
 
 **Exchange:** `vacancy.exchange` (direct)
 **Routing Key:** `vacancy.parse`
@@ -130,8 +128,21 @@ docker compose up -d
 | Поле | Описание | Обязательно |
 |---|---|---|
 | `command` | Команда (всегда `parse_vacancies`) | Да |
-| `hosts` | Список хостов для парсинга (все если не указано) | Нет |
+| `hosts` | Список хостов (все если пусто) | Нет |
 | `query` | Ключевое слово для поиска | Нет |
+
+### Отправка команды
+
+```bash
+# Через curl
+curl -u the_great_me:supper_secret -X POST \
+  http://localhost:15672/api/exchanges/%2F/vacancy.exchange/publish \
+  -H "content-type: application/json" \
+  -d '{"routing_key":"vacancy.parse","payload":"{\"command\":\"parse_vacancies\",\"hosts\":[\"hh.ru\"],\"query\":\"Python\"}","payload_encoding":"string"}'
+
+# Через RabbitMQ Management UI
+# http://localhost:15672 → Exchanges → vacancy.exchange → Publish message
+```
 
 ### Поддерживаемые сайты
 
@@ -145,7 +156,7 @@ docker compose up -d
 
 ### Формат вакансии в Redis
 
-**Queue:** `vacancy:queue` (List)
+**Key:** `vacancy:queue` (List)
 
 ```json
 {
@@ -160,47 +171,36 @@ docker compose up -d
 }
 ```
 
-## Тестирование
-
-### Тестовый скрипт
-
-```bash
-cd src
-python test_publish.py
-```
-
-Отправит команду в RabbitMQ и покажет результат из Redis.
-
-### Вручную через RabbitMQ Management
-
-1. Откройте `http://localhost:15672`
-2. Логин: `the_great_me`, пароль: `supper_secret`
-3. Перейдите в **Exchanges** → `vacancy.exchange`
-4. В поле **Routing Key** введите `vacancy.parse`
-5. В поле **Payload** вставьте JSON сообщение
-6. Нажмите **Publish message**
-
-### через curl
-
-```bash
-curl -u the_great_me:supper_secret -X POST \
-  http://localhost:15672/api/exchanges/%2F/vacancy.exchange/publish \
-  -H "content-type: application/json" \
-  -d '{"routing_key":"vacancy.parse","payload":"{\"command\":\"parse_vacancies\",\"hosts\":[\"hh.ru\"],\"query\":\"Python\"}","payload_encoding":"string"}'
-```
-
 ## Redis ключи
 
 | Ключ | Тип | Описание |
 |---|---|---|
-| `vacancy:queue` | List | Очередь готовых вакансий |
+| `vacancy:queue` | List | Очередь готовых вакансий (RPUSH) |
 | `vacancy:processed` | Set | Множество обработанных ID (дедупликация) |
-| `vacancy:parser:running` | String | Флаг запуска парсера (`1` = работает) |
+| `vacancy:parser:running` | String | Флаг состояния (`1` = работает) |
+
+## Тестирование
+
+```bash
+# Все тесты
+uv run pytest tests/ -v
+
+# Только unit-тесты
+uv run pytest tests/test_parsers.py -v
+
+# Только интеграционные
+uv run pytest tests/test_parsers_integration.py -v
+```
 
 ## Зависимости
 
 - Python >= 3.12
-- aio-pika (RabbitMQ)
-- redis (Redis)
-- playwright (браузер)
-- pydantic (схемы данных)
+- [Playwright](https://playwright.dev/python/) — парсинг страниц
+- [playwright-stealth](https://github.com/Mattwmaster58/playwright_stealth) — обход детекции
+- [aio-pika](https://github.com/mosquito/aio-pika) — RabbitMQ
+- [redis](https://github.com/redis/redis-py) — Redis
+- [Pydantic](https://docs.pydantic.dev/) — валидация данных
+
+## Лицензия
+
+MIT
