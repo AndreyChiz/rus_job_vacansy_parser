@@ -4,9 +4,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PLAYWRIGHT_BROWSERS_PATH=0
 
-WORKDIR /app
-
-
 RUN apt-get update && apt-get install -y \
     curl wget ca-certificates \
     libnss3 libatk1.0-0 libgtk-3-0 \
@@ -15,19 +12,17 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
-
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:$PATH"
 
 WORKDIR /app
 
-COPY pyproject.toml .
+COPY pyproject.toml uv.lock ./
 
-RUN uv pip install --system .
+RUN uv sync --frozen --no-dev
 
+RUN .venv/bin/python -m playwright install chromium
 
-RUN python -m playwright install chromium
+COPY src/ ./src/
 
-COPY . .
-
-CMD ["python", "src/main.py"]
+CMD [".venv/bin/python", "src/main.py"]

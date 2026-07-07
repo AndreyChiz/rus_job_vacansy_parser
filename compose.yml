@@ -1,21 +1,8 @@
-version: '3.8'
-
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: job-hunter-rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: the_great_me
-      RABBITMQ_DEFAULT_PASS: supper_secret
-
   parser:
     build: .
-    container_name: hh-parser
+    container_name: parser_service-job_hunter
+    network_mode: host
     env_file:
       - .env
-    depends_on:
-      - rabbitmq
     restart: always

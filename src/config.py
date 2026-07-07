@@ -3,26 +3,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-HOST = os.getenv("JOB_HUNTER__HOST", "dev.loc")
-LOG_LEVEL = os.getenv("VACANCY_PARSER__LOG_LEVEL", "INFO")  # INFO
-
-PARSE_TIMEOUT_S=int(os.getenv("JOB_HUNTER__PARSER_SERVICE__PARSE_TIMEOUT_S", 60) ) 
-PARALLEL_WORKERS = int(os.getenv("JOB_HUNTER__PARSER_SERVICE__PARALLEL_WORKERS", 4))
-CARDS_PARSE_LIMIT = int(os.getenv("JOB_HUNTER__PARSER_SERVICE__CARDS_PARSE_LIMIT", 10))
-
-CACHE_TYPE = os.getenv("JOB_HUNTER__PARSER_SERVICE__CACHE_TYPE", "redis")  # "memory"
-CACHE_USER = os.getenv("JOB_HUNTER__REDIS__PASSWORD")
-CACHE_URL = os.getenv(
-    "JOB_HUNTER__PARSER_SERVICE__CACHE_URL", f"redis://:{CACHE_USER}@{HOST}:6379/0"
-)  
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 RABBITMQ_URL = os.getenv(
-    "JOB_HUNTER__RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"
+    "RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"
 )
 
-BROWSER_ENGINE_TYPE = os.getenv(
-    "VACANCY_PARSER__BROWSER_ENGINE_TYPE", "chromium"
-)  # firefox webkit TODO
+CACHE_TYPE = os.getenv("CACHE_TYPE", "redis")
+CACHE_URL = os.getenv("CACHE_URL", "redis://localhost:6379/0")
 
+PARALLEL_WORKERS = int(os.getenv("PARALLEL_WORKERS", "4"))
+CARDS_PARSE_LIMIT = int(os.getenv("CARDS_PARSE_LIMIT", "10"))
 
-PARSER_QUERY_WORDS = os.getenv("JOB_HUNTER__PARSER_SERVICE__QUERY_WORDS", "")  # "Python backend"
+BROWSER_TYPE = os.getenv("BROWSER_TYPE", "chromium")

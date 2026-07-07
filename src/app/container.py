@@ -12,10 +12,9 @@ from app.usecases.parse_vacancies import ParseVacanciesUseCase
 from config import (
     CACHE_TYPE,
     CACHE_URL,
-    BROWSER_ENGINE_TYPE,
+    BROWSER_TYPE,
     PARALLEL_WORKERS,
     CARDS_PARSE_LIMIT,
-    PARSER_QUERY_WORDS,
 )
 
 
@@ -37,7 +36,7 @@ class Container:
     def __init__(self):
 
         self.browser = BrowserProvider(
-            BROWSER_ENGINE_TYPE,
+            BROWSER_TYPE,
         )
 
         self.cache = CacheProvider(
@@ -61,35 +60,35 @@ class Container:
             HHParser(
                 base_url="https://hh.ru/search/vacancy",
                 host="hh.ru",
-                query=PARSER_QUERY_WORDS,
+                query="",
                 parallel=PARALLEL_WORKERS,
                 card_parse_limit=CARDS_PARSE_LIMIT,
             ),
             HabrParser(
                 base_url="https://career.habr.com/vacancies",
                 host="career.habr.com",
-                query=PARSER_QUERY_WORDS,
+                query="",
                 parallel=PARALLEL_WORKERS,
                 card_parse_limit=CARDS_PARSE_LIMIT,
             ),
             RabotaParser(
                 base_url="https://www.rabota.ru/vacancy",
                 host="www.rabota.ru",
-                query=PARSER_QUERY_WORDS,
+                query="",
                 parallel=PARALLEL_WORKERS,
                 card_parse_limit=CARDS_PARSE_LIMIT,
             ),
             SuperJobParser(
                 base_url="https://russia.superjob.ru/vacancy/search",
                 host="russia.superjob.ru",
-                query=PARSER_QUERY_WORDS,
+                query="",
                 parallel=PARALLEL_WORKERS,
                 card_parse_limit=CARDS_PARSE_LIMIT,
             ),
             ZarplataParser(
                 base_url="https://zarplata.ru/vacancy",
                 host="zarplata.ru",
-                query=PARSER_QUERY_WORDS,
+                query="",
                 parallel=PARALLEL_WORKERS,
                 card_parse_limit=CARDS_PARSE_LIMIT,
             ),
