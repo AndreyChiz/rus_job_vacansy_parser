@@ -29,7 +29,7 @@ class SuperJobParser(BaseVacancyParser):
 
         try:
             await page.goto(self._build_url(), wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(5000)
+            await page.wait_for_selector("a[href*='/vakansii/']", state="attached", timeout=10000)
 
             links = await page.query_selector_all("a[href*='/vakansii/']")
 
@@ -75,7 +75,7 @@ class SuperJobParser(BaseVacancyParser):
 
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(4000)
+            await page.wait_for_timeout(2000)
 
             title = None
             title_el = await page.query_selector("h1")

@@ -14,6 +14,10 @@ class CacheBackend(ABC):
     async def sismember(self, key: str, value: str) -> bool:
         ...
 
+    @abstractmethod
+    async def smembers(self, key: str) -> set[str]:
+        ...
+
 
 class MemoryCacheBackend(CacheBackend):
     def __init__(self):
@@ -24,6 +28,9 @@ class MemoryCacheBackend(CacheBackend):
 
     async def sismember(self, key: str, value: str) -> bool:
         return value in self.sets.get(key, set())
+
+    async def smembers(self, key: str) -> set[str]:
+        return self.sets.get(key, set())
 
 
 class RedisCacheBackend(CacheBackend, BaseLifecycle):
@@ -49,6 +56,9 @@ class RedisCacheBackend(CacheBackend, BaseLifecycle):
 
     async def sismember(self, key: str, value: str) -> bool:
         return bool(await self.get_client().sismember(key, value))
+
+    async def smembers(self, key: str) -> set[str]:
+        return await self.get_client().smembers(key)
 
 
 class CacheProvider(BaseLifecycle):
@@ -92,3 +102,6 @@ class CacheProvider(BaseLifecycle):
 
     async def sismember(self, key: str, value: str) -> bool:
         return await self.get_backend().sismember(key, value)
+
+    async def smembers(self, key: str) -> set[str]:
+        return await self.get_backend().smembers(key)

@@ -32,7 +32,7 @@ class HabrParser(BaseVacancyParser):
 
         try:
             await page.goto(self._build_url(), wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(5000)
+            await page.wait_for_selector(".vacancy-card", state="attached", timeout=10000)
 
             cards = await page.query_selector_all(".vacancy-card")
 
@@ -67,7 +67,7 @@ class HabrParser(BaseVacancyParser):
 
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(1500)
 
             title_el = await page.query_selector("h1")
             title = (await title_el.inner_text()).strip() if title_el else None

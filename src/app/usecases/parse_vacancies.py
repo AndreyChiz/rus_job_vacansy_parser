@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import List
 from logging import getLogger
 
@@ -46,7 +47,12 @@ class ParseVacanciesUseCase:
         context = await self.browser.new_context()
 
         try:
+            t0 = time.monotonic()
             urls = await parser.search_cards(context)
+            t_search = time.monotonic() - t0
+
+            t0 = time.monotonic()
+            seen_ids = await self.cache.smembers("vacancy:processed")
 
             filtered_urls = []
             seen = 0
@@ -55,19 +61,23 @@ class ParseVacanciesUseCase:
             for url in urls:
                 vacancy_id = parser._get_card_id_from_url(url)
 
-                if await self.cache.sismember("vacancy:processed", vacancy_id):
+                if vacancy_id in seen_ids:
                     seen += 1
                     continue
 
                 fresh += 1
                 filtered_urls.append(url)
 
+            t_filter = time.monotonic() - t0
+
             logger.info(
-                "[%s] Found %d cards. New: %d, Cached: %d",
+                "[%s] Found %d cards. New: %d, Cached: %d [search=%.1fs filter=%.3fs]",
                 parser.host,
                 len(urls),
                 fresh,
                 seen,
+                t_search,
+                t_filter,
             )
 
             async def on_vacancy(vacancy: VacancyDTO):

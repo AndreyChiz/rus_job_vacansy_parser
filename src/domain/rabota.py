@@ -30,7 +30,7 @@ class RabotaParser(BaseVacancyParser):
 
         try:
             await page.goto(self._build_url(), wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(5000)
+            await page.wait_for_timeout(3000)
 
             links = await page.query_selector_all("a[href*='/vacancy/']")
 
@@ -68,7 +68,7 @@ class RabotaParser(BaseVacancyParser):
 
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(1500)
 
             title = None
             title_el = await page.query_selector(
