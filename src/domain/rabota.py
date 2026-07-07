@@ -19,7 +19,7 @@ class RabotaParser(BaseVacancyParser):
 
     def _build_url(self) -> str:
         params = self._base_query()
-        return f"{self.base_url}/?{urlencode(params, doseq=True)}"
+        return f"{self.base_url}?{urlencode(params, doseq=True)}"
 
     def _get_card_id_from_url(self, url: str) -> str:
         path = urlparse(url).path.rstrip("/")

@@ -31,6 +31,10 @@ async def main():
         sink = RedisVacancySink(redis)
         status = RedisStatusFlag(redis, ttl=LOCK_TTL)
 
+        async def on_vacancy(vacancy):
+            await sink.push(vacancy.model_dump_json())
+            logger.info("Pushed vacancy: %s [%s]", vacancy.vacancy_id, vacancy.host)
+
         async def run_parse(body: dict):
             await status.set_running()
 
@@ -38,12 +42,9 @@ async def main():
                 hosts = body.get("hosts")
                 query = body.get("query")
 
-                vacancies = await usecase.execute(hosts=hosts, query=query)
+                vacancies = await usecase.execute(hosts=hosts, query=query, on_vacancy=on_vacancy)
 
-                for vacancy in vacancies:
-                    await sink.push(vacancy.model_dump_json())
-
-                logger.info("Pushed %d vacancies to queue", len(vacancies))
+                logger.info("Completed: %d vacancies total", len(vacancies))
             finally:
                 await status.clear_running()
 

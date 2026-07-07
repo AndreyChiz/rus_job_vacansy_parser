@@ -1,4 +1,5 @@
 from playwright.async_api import async_playwright, Browser
+from playwright_stealth import Stealth
 
 from core.base.base_lifespan import BaseLifecycle
 
@@ -50,6 +51,17 @@ class BrowserProvider(BaseLifecycle):
             raise RuntimeError("Browser not started. Call lifespan.start() first.")
 
         return self._state.get()
+
+    async def new_context(self):
+        browser = self.get_instance()
+        context = await browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            locale="ru-RU",
+        )
+        stealth = Stealth()
+        await stealth.apply_stealth_async(context)
+        return context
 
     async def stop(self) -> None:
         if isinstance(self._state, BrowserRunning):

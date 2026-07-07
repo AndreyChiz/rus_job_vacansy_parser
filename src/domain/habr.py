@@ -32,15 +32,14 @@ class HabrParser(BaseVacancyParser):
 
         try:
             await page.goto(self._build_url(), wait_until="domcontentloaded")
-
-            await page.wait_for_selector(".vacancy-card")
+            await page.wait_for_timeout(5000)
 
             cards = await page.query_selector_all(".vacancy-card")
 
             urls: List[str] = []
 
             for card in cards[: self.card_parse_limit]:
-                link_el = await card.query_selector(".vacancy-card__title a")
+                link_el = await card.query_selector("a.vacancy-card__title-link, a.vacancy-card__backdrop-link")
                 if not link_el:
                     continue
 
@@ -68,31 +67,31 @@ class HabrParser(BaseVacancyParser):
 
         try:
             await page.goto(url, wait_until="domcontentloaded")
+            await page.wait_for_timeout(3000)
 
-            await page.wait_for_selector("h1.page-title__title")
-
-            title = await page.inner_text("h1.page-title__title")
+            title_el = await page.query_selector("h1")
+            title = (await title_el.inner_text()).strip() if title_el else None
 
             salary = None
             salary_el = await page.query_selector(
-                ".vacancy-header__salary .basic-salary"
+                ".vacancy-header__salary .basic-salary, .basic-salary"
             )
             if salary_el:
-                salary = await salary_el.inner_text()
+                salary = (await salary_el.inner_text()).strip()
 
             employer = None
             employer_el = await page.query_selector(
-                ".section.company_info .company_name a"
+                ".vacancy-card__company a, .company_name a"
             )
             if employer_el:
-                employer = await employer_el.inner_text()
+                employer = (await employer_el.inner_text()).strip()
 
             description = None
             desc_el = await page.query_selector(
-                ".vacancy-description__text .style-ugc"
+                ".vacancy-description__text .style-ugc, .vacancy-description__text, [itemprop='description']"
             )
             if desc_el:
-                description = await desc_el.inner_text()
+                description = (await desc_el.inner_text()).strip()
 
             vacancy_id = self._get_card_id_from_url(url)
 

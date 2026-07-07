@@ -63,20 +63,22 @@ class BaseVacancyParser(ABC):
         self,
         context: BrowserContext,
         urls: List[str],
+        on_vacancy=None,
     ) -> List[VacancyDTO]:
 
         sem = asyncio.Semaphore(self.parallel)
+        parsed: List[VacancyDTO] = []
 
         async def worker(url: str):
             async with sem:
                 try:
-                    return await self._get_card_details(context, url)
+                    vacancy = await self._get_card_details(context, url)
+                    if vacancy:
+                        parsed.append(vacancy)
+                        if on_vacancy:
+                            await on_vacancy(vacancy)
                 except Exception:
-                    return None
+                    pass
 
-        results = await asyncio.gather(*[
-            worker(url)
-            for url in urls
-        ])
-
-        return [v for v in results if v]
+        await asyncio.gather(*[worker(url) for url in urls])
+        return parsed
