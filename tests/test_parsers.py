@@ -251,7 +251,9 @@ class TestAllParsersIntegration:
         for name, parser in parsers.items():
             mock_context = AsyncMock()
             result = await parser.parse_cards(mock_context, [])
-            assert result == [], f"{name}: parse_cards with empty urls should return empty list"
+            assert result == [], (
+                f"{name}: parse_cards with empty urls should return empty list"
+            )
 
     def test_logger_info(self, parsers):
         for name, parser in parsers.items():
@@ -293,6 +295,7 @@ class TestVacancyDTOEdgeCases:
             host="test.com",
             description=long_desc,
         )
+        assert dto.description is not None
         assert len(dto.description) == 10000
 
     def test_special_characters(self):
@@ -335,23 +338,75 @@ class TestParserUrlBuilders:
 class TestParserCardIdExtraction:
     def test_hh_various_urls(self, parsers):
         assert parsers["hh"]._get_card_id_from_url("https://hh.ru/vacancy/111") == "111"
-        assert parsers["hh"]._get_card_id_from_url("https://hh.ru/vacancy/222?text=python") == "222"
-        assert parsers["hh"]._get_card_id_from_url("https://hh.ru/vacancy/333?from=direct") == "333"
+        assert (
+            parsers["hh"]._get_card_id_from_url("https://hh.ru/vacancy/222?text=python")
+            == "222"
+        )
+        assert (
+            parsers["hh"]._get_card_id_from_url("https://hh.ru/vacancy/333?from=direct")
+            == "333"
+        )
 
     def test_habr_various_urls(self, parsers):
-        assert parsers["habr"]._get_card_id_from_url("https://career.habr.com/vacancies/111") == "111"
-        assert parsers["habr"]._get_card_id_from_url("https://career.habr.com/vacancies/222?type=all") == "222"
+        assert (
+            parsers["habr"]._get_card_id_from_url(
+                "https://career.habr.com/vacancies/111"
+            )
+            == "111"
+        )
+        assert (
+            parsers["habr"]._get_card_id_from_url(
+                "https://career.habr.com/vacancies/222?type=all"
+            )
+            == "222"
+        )
 
     def test_rabota_various_urls(self, parsers):
-        assert parsers["rabota"]._get_card_id_from_url("https://www.rabota.ru/vacancy/111") == "111"
-        assert parsers["rabota"]._get_card_id_from_url("https://www.rabota.ru/vacancy/222?from=direct") == "222"
+        assert (
+            parsers["rabota"]._get_card_id_from_url("https://www.rabota.ru/vacancy/111")
+            == "111"
+        )
+        assert (
+            parsers["rabota"]._get_card_id_from_url(
+                "https://www.rabota.ru/vacancy/222?from=direct"
+            )
+            == "222"
+        )
 
     def test_superjob_various_urls(self, parsers):
-        assert parsers["superjob"]._get_card_id_from_url("https://russia.superjob.ru/vakansii/111.html") == "111"
-        assert parsers["superjob"]._get_card_id_from_url("https://russia.superjob.ru/vakansii/222.html?geo") == "222"
-        assert parsers["superjob"]._get_card_id_from_url("https://russia.superjob.ru/vakansii/developer-333.html") == "333"
+        assert (
+            parsers["superjob"]._get_card_id_from_url(
+                "https://russia.superjob.ru/vakansii/111.html"
+            )
+            == "111"
+        )
+        assert (
+            parsers["superjob"]._get_card_id_from_url(
+                "https://russia.superjob.ru/vakansii/222.html?geo"
+            )
+            == "222"
+        )
+        assert (
+            parsers["superjob"]._get_card_id_from_url(
+                "https://russia.superjob.ru/vakansii/developer-333.html"
+            )
+            == "333"
+        )
 
     def test_zarplata_various_urls(self, parsers):
-        assert parsers["zarplata"]._get_card_id_from_url("https://zarplata.ru/vacancy/111") == "111"
-        assert parsers["zarplata"]._get_card_id_from_url("https://zarplata.ru/vacancy/222/") == "222"
-        assert parsers["zarplata"]._get_card_id_from_url("https://zarplata.ru/vacancy/333?from=search") == "333"
+        assert (
+            parsers["zarplata"]._get_card_id_from_url("https://zarplata.ru/vacancy/111")
+            == "111"
+        )
+        assert (
+            parsers["zarplata"]._get_card_id_from_url(
+                "https://zarplata.ru/vacancy/222/"
+            )
+            == "222"
+        )
+        assert (
+            parsers["zarplata"]._get_card_id_from_url(
+                "https://zarplata.ru/vacancy/333?from=search"
+            )
+            == "333"
+        )
