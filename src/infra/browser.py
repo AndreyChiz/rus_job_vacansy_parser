@@ -1,4 +1,6 @@
-from playwright.async_api import async_playwright, Browser
+from typing import Any
+
+from playwright.async_api import async_playwright, Browser, Playwright
 from playwright_stealth import Stealth
 
 from core.base.base_lifespan import BaseLifecycle
@@ -19,17 +21,18 @@ class BrowserRunning:
 class BrowserProvider(BaseLifecycle):
     def __init__(self, browser_type: str = "chromium"):
         self.browser_type = browser_type
-        self._pw = None
+        self._pw: Playwright | None = None
         self._state: BrowserStopped | BrowserRunning = BrowserStopped()
 
     async def start(self) -> None:
         self._pw = await async_playwright().start()
 
-        launcher = {
+        launchers: dict[str, Any] = {
             "chromium": self._pw.chromium,
             "firefox": self._pw.firefox,
             "webkit": self._pw.webkit,
-        }.get(self.browser_type)
+        }
+        launcher = launchers.get(self.browser_type)
 
         if not launcher:
             raise ValueError(f"Unknown browser type: {self.browser_type}")

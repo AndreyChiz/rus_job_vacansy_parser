@@ -20,8 +20,8 @@ class CacheBackend(ABC):
 
 
 class MemoryCacheBackend(CacheBackend):
-    def __init__(self):
-        self.sets: dict[str, set] = {}
+    def __init__(self) -> None:
+        self.sets: dict[str, set[str]] = {}
 
     async def sadd(self, key: str, value: str) -> None:
         self.sets.setdefault(key, set()).add(value)
@@ -58,7 +58,8 @@ class RedisCacheBackend(CacheBackend, BaseLifecycle):
         return bool(await self.get_client().sismember(key, value))
 
     async def smembers(self, key: str) -> set[str]:
-        return await self.get_client().smembers(key)
+        result: set[str] = await self.get_client().smembers(key)  # type: ignore[assignment]
+        return result
 
 
 class CacheProvider(BaseLifecycle):
