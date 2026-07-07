@@ -1,8 +1,27 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: job-hunter-rabbitmq
+    network_mode: host
+    environment:
+      RABBITMQ_DEFAULT_USER: the_great_me
+      RABBITMQ_DEFAULT_PASS: supper_secret
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: job-hunter-redis
+    network_mode: host
+    command: redis-server --requirepass supper_secret
+    restart: unless-stopped
+
   parser:
     build: .
-    container_name: parser_service-job_hunter
+    container_name: job-hunter-parser
     network_mode: host
     env_file:
       - .env
-    restart: always
+    depends_on:
+      - rabbitmq
+      - redis
+    restart: unless-stopped
