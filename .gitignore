@@ -1,89 +1,56 @@
+
 # =========================
-# Python
-# =========================
-__pycache__/
-*.py[cod]
 *$py.class
-.env
-# virtual environments
-.venv/
-venv/
-ENV/
-env/
-.mimocode/
-# =========================
-# distribution
-# =========================
+blob-report/
+.browser_state/hh_ru.json
 build/
-dist/
-*.egg-info/
-
-# =========================
-# pytest / coverage
-# =========================
-.pytest_cache/
+.cache/
 .coverage
-htmlcov/
-
-# =========================
-# mypy / ruff / pyright
-# =========================
-.mypy_cache/
-.ruff_cache//
-.pyright/
-
-# =========================
-# IDE
-# =========================
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# =========================
-# OS
-# =========================
+*.db
+db.sqlite3
+dist/
+# distribution
+.docker/
+# Docker
 .DS_Store
-Thumbs.db
-
-# =========================
-# logs
-# =========================
-*.log
-logs/
-
-# =========================
-# environment variables
-# =========================
+*.egg-info/
 .env
 .env.*
+env/
+ENV/
+# environment variables
 !.env.template
-
-# =========================
-# Playwright
-# =========================
-playwright-report/
-blob-report/
-test-results/
+htmlcov/
+# IDE
+.idea/
+*.log
+# logs
+logs/
+.mimocode/
 ms-playwright/
-
-# =========================
-# Docker
-# =========================
-.docker/
-
-# =========================
+.mypy_cache/
+# mypy / ruff / pyright
+# OS
+# Playwright
+playwright-report/
+__pycache__/
+*.py[cod]
+.pyright/
+.pytest_cache/
+# pytest / coverage
+# Python
+.ruff_cache//
 # runtime data
-# =========================
 *.sqlite
-*.db
-
-# =========================
-# temp / cache
-# =========================
-.cache/
-tmp/
+*.swo
+*.swp
 temp/
+# temp / cache
+test-results/
+Thumbs.db
+tmp/
 tmp.txt
-db.sqlite3
-.browser_state/hh_ru.json
+.venv/
+venv/
+# virtual environments
+.vscode/
