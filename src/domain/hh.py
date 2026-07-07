@@ -40,7 +40,7 @@ class HHParser(BaseVacancyParser):
         page = await context.new_page()
 
         try:
-            await page.goto(self._build_url(), wait_until="domcontentloaded")
+            await page.goto(self._build_url(), wait_until="domcontentloaded", timeout=60000)
 
             await page.wait_for_selector(
                 "[data-qa='vacancy-serp__vacancy'], "
@@ -84,7 +84,7 @@ class HHParser(BaseVacancyParser):
         page = await context.new_page()
 
         try:
-            await page.goto(url, wait_until="domcontentloaded")
+            await page.goto(url, wait_until="domcontentloaded", timeout=60000)
 
             await page.wait_for_selector("[data-qa='vacancy-title']")
 
