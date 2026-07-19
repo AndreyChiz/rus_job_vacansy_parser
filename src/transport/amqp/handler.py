@@ -13,11 +13,13 @@ class VacancyParseHandler:
 
     async def start_consuming(self):
         exchange = await self.channel.declare_exchange(
-            "vacancy.exchange", aio_pika.ExchangeType.DIRECT
+            "vacancy.exchange",
+            aio_pika.ExchangeType.DIRECT,
+            durable=True,
         )
-        queue = await self.channel.declare_queue("vacancy.parse.request", durable=True)
-        await queue.bind(exchange, routing_key="vacancy.parse")
-        logger.info("Consuming on vacancy.parse.request")
+        queue = await self.channel.declare_queue("vacancy.parser.request", durable=True)
+        await queue.bind(exchange, routing_key="vacancy.parser")
+        logger.info("Consuming on vacancy.parser.request")
         await queue.consume(self._on_message)
 
     async def _on_message(self, message: aio_pika.IncomingMessage):

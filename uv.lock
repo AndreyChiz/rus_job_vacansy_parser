@@ -153,46 +153,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hh-parser"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "aio-pika" },
-    { name = "aiocache" },
-    { name = "beautifulsoup4" },
-    { name = "dotenv" },
-    { name = "playwright" },
-    { name = "playwright-firefox" },
-    { name = "playwright-stealth" },
-    { name = "pydantic" },
-    { name = "redis" },
-    { name = "rich" },
-]
-
-[package.optional-dependencies]
-test = [
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aio-pika", specifier = ">=9.0.0" },
-    { name = "aiocache", specifier = ">=0.12.3" },
-    { name = "beautifulsoup4", specifier = ">=4.14.3" },
-    { name = "dotenv", specifier = ">=0.9.9" },
-    { name = "playwright", specifier = ">=1.60.0" },
-    { name = "playwright-firefox", specifier = ">=1.0.4" },
-    { name = "playwright-stealth", specifier = ">=2.0.3" },
-    { name = "pydantic", specifier = ">=2.13.4" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23.0" },
-    { name = "redis", specifier = ">=8.0.0" },
-    { name = "rich", specifier = ">=15.0.0" },
-]
-provides-extras = ["test"]
-
-[[package]]
 name = "idna"
 version = "3.16"
 source = { registry = "https://pypi.org/simple" }
@@ -347,6 +307,48 @@ sdist = { url = "https://files.pythonhosted.org/packages/fb/62/35bbd3d3021e00860
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ac/8d/c1e93296e109a320e508e38118cf7d1fc2a4d1c2ec64de78565b3c445eb5/pamqp-3.3.0-py2.py3-none-any.whl", hash = "sha256:c901a684794157ae39b52cbf700db8c9aae7a470f13528b9d7b4e5f7202f8eb0", size = 33848, upload-time = "2024-01-12T20:37:21.359Z" },
 ]
+
+[[package]]
+name = "parser-service"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "aio-pika" },
+    { name = "aiocache" },
+    { name = "beautifulsoup4" },
+    { name = "dotenv" },
+    { name = "playwright" },
+    { name = "playwright-firefox" },
+    { name = "playwright-stealth" },
+    { name = "pydantic" },
+    { name = "pytest" },
+    { name = "redis" },
+    { name = "rich" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aio-pika", specifier = ">=9.0.0" },
+    { name = "aiocache", specifier = ">=0.12.3" },
+    { name = "beautifulsoup4", specifier = ">=4.14.3" },
+    { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "playwright", specifier = ">=1.60.0" },
+    { name = "playwright-firefox", specifier = ">=1.0.4" },
+    { name = "playwright-stealth", specifier = ">=2.0.3" },
+    { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23.0" },
+    { name = "redis", specifier = ">=8.0.0" },
+    { name = "rich", specifier = ">=15.0.0" },
+]
+provides-extras = ["test"]
 
 [[package]]
 name = "playwright"

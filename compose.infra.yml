@@ -15,13 +15,13 @@ services:
     command: redis-server --requirepass supper_secret
     restart: unless-stopped
 
-  parser:
-    build: .
-    container_name: job-hunter-parser
-    network_mode: host
-    env_file:
-      - .env
-    depends_on:
-      - rabbitmq
-      - redis
-    restart: unless-stopped
+  # parser:
+  #   build: .
+  #   container_name: job-hunter-parser
+  #   network_mode: host
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - rabbitmq
+  #     - redis
+  #   restart: unless-stopped
