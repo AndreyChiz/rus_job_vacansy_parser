@@ -39,10 +39,14 @@ async def main():
             await status.set_running()
 
             try:
+                if not body.get("command") == "parse_vacancies":
+                    return
                 hosts = body.get("hosts")
                 query = body.get("query")
 
-                vacancies = await usecase.execute(hosts=hosts, query=query, on_vacancy=on_vacancy)
+                vacancies = await usecase.execute(
+                    hosts=hosts, query=query, on_vacancy=on_vacancy
+                )
 
                 logger.info("Completed: %d vacancies total", len(vacancies))
             finally:
